@@ -1,13 +1,17 @@
 <!DOCTYPE html>
 <html lang="th">
+
 <head>
   <meta charset="UTF-8" />
   <title>Secretary LIFF</title>
   <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
 </head>
+
 <body>
   <h1>LIFF พร้อมใช้งาน</h1>
   <pre id="output">กำลังโหลด...</pre>
+  <button onclick="sendToN8n()">ส่งไป n8n</button>
+
 
   <script>
     const liffId = "2008859812-n2gTV87V";
@@ -24,8 +28,26 @@
       document.getElementById("output").textContent =
         JSON.stringify(profile, null, 2);
     }
+    async function sendToN8n() {
+      const profile = await liff.getProfile();
 
+      await fetch("https://poonyameenoi.app.n8n.cloud/webhook/receive-from-liff", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          userId: profile.userId,
+          displayName: profile.displayName,
+          action: "test"
+        })
+      });
+
+      alert("ส่งข้อมูลแล้ว");
+    }
     main();
   </script>
 </body>
+
 </html>
+
