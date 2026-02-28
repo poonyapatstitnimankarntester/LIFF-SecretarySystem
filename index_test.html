@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="th">
+
+<head>
+  <meta charset="UTF-8" />
+  <title>Secretary LIFF</title>
+  <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
+</head>
+
+<body>
+  <h1>LIFF พร้อมใช้งาน</h1>
+  <pre id="output">กำลังโหลด...</pre>
+  <button onclick="sendToN8n()">ส่งไปtest n8n</button>
+
+
+  <script>
+    const liffId = "2008859812-P8rNW4Tb";
+
+    async function main() {
+      await liff.init({ liffId });
+
+      if (!liff.isLoggedIn()) {
+        liff.login();
+        return;
+      }
+
+      const profile = await liff.getProfile();
+      document.getElementById("output").textContent =
+        JSON.stringify(profile, null, 2);
+    }
+    async function sendToN8n() {
+      const profile = await liff.getProfile();
+
+      await fetch("https://poonyameenoi.app.n8n.cloud/webhook-test/receive-from-liff", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          userId: profile.userId,
+          displayName: profile.displayName,
+          action: "test"
+        })
+      });
+
+      alert("ส่งข้อมูลแล้ว");
+    }
+    main();
+  </script>
+</body>
+
+</html>
