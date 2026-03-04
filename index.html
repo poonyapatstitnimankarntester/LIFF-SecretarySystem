@@ -1,53 +1,85 @@
 <!DOCTYPE html>
 <html lang="th">
-
 <head>
   <meta charset="UTF-8" />
-  <title>Secretary LIFF</title>
+  <title>Secretary - Add Appointment</title>
   <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
+  <style>
+    body { font-family: sans-serif; padding: 20px; }
+    input, textarea, button {
+      width: 100%;
+      margin-bottom: 12px;
+      padding: 8px;
+      font-size: 16px;
+    }
+    button {
+      background: black;
+      color: white;
+      border: none;
+      cursor: pointer;
+    }
+  </style>
 </head>
-
 <body>
-  <h1>LIFF พร้อมใช้งาน</h1>
-  <pre id="output">กำลังโหลด...</pre>
-  <button onclick="sendToN8n()">ส่งไป n8n</button>
 
+<h2>เพิ่มนัดหมาย</h2>
 
-  <script>
-    const liffId = "2008859812-n2gTV87V";
+<form id="appointmentForm">
+  <input type="text" id="title" placeholder="ชื่อนัด" required />
 
-    async function main() {
-      await liff.init({ liffId });
+  <input type="date" id="event_date" required />
 
-      if (!liff.isLoggedIn()) {
-        liff.login();
-        return;
-      }
+  <input type="time" id="event_time" required />
 
-      const profile = await liff.getProfile();
-      document.getElementById("output").textContent =
-        JSON.stringify(profile, null, 2);
+  <input type="number" id="remind_before_days" placeholder="เตือนล่วงหน้ากี่วัน" value="0" min="0" />
+
+  <textarea id="note" placeholder="หมายเหตุเพิ่มเติม"></textarea>
+
+  <button type="submit">บันทึกนัด</button>
+</form>
+
+<script>
+  const liffId = "2008859812-n2gTV87V"; // ใช้ของคุณ
+
+  async function main() {
+    await liff.init({ liffId });
+
+    if (!liff.isLoggedIn()) {
+      liff.login();
+      return;
     }
-    async function sendToN8n() {
-      const profile = await liff.getProfile();
+  }
 
-      await fetch("https://poonyameenoi.app.n8n.cloud/webhook/receive-from-liff", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify({
-          userId: profile.userId,
-          displayName: profile.displayName,
-          action: "test"
-        })
-      });
+  async function submitForm(event) {
+    event.preventDefault();
 
-      alert("ส่งข้อมูลแล้ว");
-    }
-    main();
-  </script>
+    const profile = await liff.getProfile();
+
+    const payload = {
+      action: "create_appointment",
+      userId: profile.userId,
+      displayName: profile.displayName,
+      title: document.getElementById("title").value,
+      event_date: document.getElementById("event_date").value,
+      event_time: document.getElementById("event_time").value,
+      remind_before_days: parseInt(document.getElementById("remind_before_days").value) || 0,
+      note: document.getElementById("note").value,
+      tags: []  // เตรียมไว้ future
+    };
+
+    await fetch("https://poonyameenoi.app.n8n.cloud/webhook/receive-from-liff", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload)
+    });
+
+    alert("บันทึกสำเร็จ");
+  }
+
+  document.getElementById("appointmentForm").addEventListener("submit", submitForm);
+
+  main();
+</script>
+
 </body>
-
 </html>
-
