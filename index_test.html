@@ -73,7 +73,9 @@
       body: JSON.stringify(payload)
     });
 
-    alert("บันทึกสำเร็จ");
+    setTimeout(() => {
+      liff.closeWindow();
+    }, 300);
   }
 
   document.getElementById("appointmentForm").addEventListener("submit", submitForm);
