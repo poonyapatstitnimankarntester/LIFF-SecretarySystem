@@ -48,8 +48,14 @@
       liff.login();
       return;
     }
-  }
+    const params = new URLSearchParams(window.location.search);
+    const mode = params.get("mode");
+    const id = params.get("id");
 
+    console.log("mode:", mode);
+    console.log("id:", id);
+  }
+   
   async function submitForm(event) {
     event.preventDefault();
 
