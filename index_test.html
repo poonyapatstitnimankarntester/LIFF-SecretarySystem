@@ -18,6 +18,10 @@
       border: none;
       cursor: pointer;
     }
+    button:disabled {
+      background: gray;
+      cursor: not-allowed;
+    }
   </style>
 </head>
 <body>
@@ -26,62 +30,111 @@
 
 <form id="appointmentForm">
   <input type="text" id="title" placeholder="ชื่อนัด" required />
-
   <input type="date" id="event_date" required />
-
   <input type="time" id="event_time" required />
-
   <input type="number" id="remind_before_days" placeholder="เตือนล่วงหน้ากี่วัน" value="0" min="0" />
-
   <textarea id="note" placeholder="หมายเหตุเพิ่มเติม"></textarea>
-
-  <button type="submit">บันทึกนัดtest</button>
+  <button id="submitBtn" type="submit">บันทึกนัด</button>
 </form>
 
 <script>
-  const liffId = "2008859812-P8rNW4Tb"; // ใช้ของคุณ
+  const liffId = "2008859812-P8rNW4Tb";
+
+  // ✅ GLOBAL STATE
+  let userProfile = null;
+  let liffReady = false;
+  let isSubmitting = false;
 
   async function main() {
-    await liff.init({ liffId });
+    console.log("START");
 
-    if (!liff.isLoggedIn()) {
-      liff.login();
-      return;
-    }
+    // ✅ 1. อ่าน query param ก่อน (ไม่ต้องรอ LIFF)
     const params = new URLSearchParams(window.location.search);
     const mode = params.get("mode");
     const id = params.get("id");
 
     console.log("mode:", mode);
     console.log("id:", id);
+
+    try {
+      // ✅ 2. เช็คว่าอยู่ใน LIFF ไหม
+      if (!window.liff) {
+        console.log("DEV MODE (no LIFF)");
+        return;
+      }
+
+      // ✅ 3. init LIFF
+      await liff.init({ liffId });
+      console.log("LIFF INIT DONE");
+
+      // ✅ 4. login check
+      if (!liff.isLoggedIn()) {
+        console.log("NOT LOGIN");
+        liff.login();
+        return;
+      }
+
+      // ✅ 5. getProfile ครั้งเดียว
+      userProfile = await liff.getProfile();
+      liffReady = true;
+
+      console.log("profile:", userProfile);
+
+    } catch (err) {
+      console.error("LIFF ERROR:", err);
+    }
   }
-   
+
   async function submitForm(event) {
     event.preventDefault();
 
-    const profile = await liff.getProfile();
+    // ✅ กันกดซ้ำ
+    if (isSubmitting) return;
+    isSubmitting = true;
 
-    const payload = {
-      action: "create_appointment",
-      userId: profile.userId,
-      displayName: profile.displayName,
-      title: document.getElementById("title").value,
-      event_date: document.getElementById("event_date").value,
-      event_time: document.getElementById("event_time").value,
-      remind_before_days: parseInt(document.getElementById("remind_before_days").value) || 0,
-      note: document.getElementById("note").value,
-      tags: []  // เตรียมไว้ future
-    };
+    const submitBtn = document.getElementById("submitBtn");
+    submitBtn.disabled = true;
 
-    await fetch("https://poonyameenoi.app.n8n.cloud/webhook-test/receive-from-liff", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(payload)
-    });
+    try {
+      // ✅ เช็ค LIFF
+      if (!liffReady) {
+        alert("ระบบยังไม่พร้อม กรุณาลองใหม่");
+        return;
+      }
 
-    setTimeout(() => {
-      liff.closeWindow();
-    }, 300);
+      const payload = {
+        action: "create_appointment",
+        userId: userProfile.userId,
+        displayName: userProfile.displayName,
+        title: document.getElementById("title").value,
+        event_date: document.getElementById("event_date").value,
+        event_time: document.getElementById("event_time").value,
+        remind_before_days: parseInt(document.getElementById("remind_before_days").value) || 0,
+        note: document.getElementById("note").value,
+        tags: []
+      };
+
+      console.log("payload:", payload);
+
+      await fetch("https://poonyameenoi.app.n8n.cloud/webhook-test/receive-from-liff", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload)
+      });
+
+      console.log("SUCCESS");
+
+      setTimeout(() => {
+        if (window.liff) liff.closeWindow();
+      }, 300);
+
+    } catch (err) {
+      console.error("SUBMIT ERROR:", err);
+      alert("เกิดข้อผิดพลาด");
+    } finally {
+      isSubmitting = false;
+      submitBtn.disabled = false;
+    }
   }
 
   document.getElementById("appointmentForm").addEventListener("submit", submitForm);
