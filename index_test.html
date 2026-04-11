@@ -65,7 +65,8 @@
   // ใส่ค่าในฟอร์ม
   document.getElementById("title").value = data.title;
   document.getElementById("date").value = data.event_date.split("T")[0];
-  document.getElementById("time").value = data.event_time;
+  document.getElementById("time").value = data.event_time.slice(0,5);
+  document.getElementById("remind").value = data.remind_before_days;
   document.getElementById("note").value = data.note || "";
   } 
   async function submitForm(event) {
