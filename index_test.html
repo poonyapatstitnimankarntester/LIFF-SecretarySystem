@@ -62,6 +62,8 @@
   const res = await fetch(`https://poonyameenoi.app.n8n.cloud/webhook-test/get-appointment?id=${id}`);
   const data = await res.json();
   const appt = data[0];
+  console.log(appt);
+  console.log(data);
 
   // ใส่ค่าในฟอร์ม
   document.getElementById("title").value = data.title;
