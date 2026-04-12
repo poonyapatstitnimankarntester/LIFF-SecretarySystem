@@ -35,7 +35,7 @@
 
   <textarea id="note" placeholder="หมายเหตุเพิ่มเติม"></textarea>
 
-  <button type="submit">บันทึกนัดtestV1.4.2</button>
+  <button type="submit">บันทึกนัดtestV1.4.4</button>
 </form>
 
 <script>
@@ -64,11 +64,11 @@
   const appt = data[0];
 
   // ใส่ค่าในฟอร์ม
-  document.getElementById("title").value = appt.title;
-  document.getElementById("event_date").value = appt.event_date.split("T")[0];
-  document.getElementById("event_time").value = appt.event_time.slice(0,5);
-  document.getElementById("remind_before_days").value = appt.remind_before_days;
-  document.getElementById("note").value = appt.note || "";
+  document.getElementById("title").value = data.title;
+  document.getElementById("event_date").value = data.event_date.split("T")[0];
+  document.getElementById("event_time").value = data.event_time.slice(0,5);
+  document.getElementById("remind_before_days").value = data.remind_before_days;
+  document.getElementById("note").value = data.note || "";
   } 
   async function submitForm(event) {
     event.preventDefault();
