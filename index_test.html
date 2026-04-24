@@ -81,6 +81,7 @@
     const id = params.get("id");
     const payload = {
       action: mode === "edit" ? "edit_appointment" : "add_appointment",
+      id: id,
       userId: profile.userId,
       displayName: profile.displayName,
       title: document.getElementById("title").value,
