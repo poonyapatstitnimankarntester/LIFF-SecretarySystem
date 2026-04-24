@@ -76,9 +76,11 @@
     event.preventDefault();
 
     const profile = await liff.getProfile();
-
+    const params = new URLSearchParams(window.location.search);
+    const mode = params.get("mode");
+    const id = params.get("id");
     const payload = {
-      action: "create_appointment",
+      action: mode === "edit" ? "edit_appointment" : "add_appointment",
       userId: profile.userId,
       displayName: profile.displayName,
       title: document.getElementById("title").value,
