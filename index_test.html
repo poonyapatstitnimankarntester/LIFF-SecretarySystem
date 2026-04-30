@@ -63,8 +63,8 @@
   async function loadAppointment(id, userId) {
     const res = await fetch(`https://poonyameenoi.app.n8n.cloud/webhook-test/get-appointment-for-edit?id=${id}&userId=${userId}`);
     const data = await res.json();
-    const appt = data[0];
-    console.log(appt);
+    
+    
     console.log(data);
     if (!data.allowed) {
       alert("ลิงก์แก้ไขหมดอายุ หรือไม่สามารถใช้งานได้");
