@@ -35,12 +35,15 @@
 
   <textarea id="note" placeholder="หมายเหตุเพิ่มเติม"></textarea>
 
-  <button type="submit">บันทึกนัดtestV1.4.4</button>
+  <button type="submit">บันทึกนัดtestV1.4.6</button>
 </form>
 
 <script>
   const liffId = "2008859812-P8rNW4Tb"; // ใช้ของคุณ
-
+  let userProfile = null;
+  const params = new URLSearchParams(window.location.search);
+  const mode = params.get("mode");
+  const id = params.get("id");
   async function main() {
     await liff.init({ liffId });
 
@@ -48,37 +51,41 @@
       liff.login();
       return;
     }
-    const params = new URLSearchParams(window.location.search);
-    const mode = params.get("mode");
-    const id = params.get("id");
-
+    const profile = await liff.getProfile();
+    const userId = profile.userId;
     console.log("mode:", mode);
     console.log("id:", id);
     if (mode === "edit" && id) {
-      await loadAppointment(id);
+      await loadAppointment(id, profile.userId);
     }
   }
-  async function loadAppointment(id) {
-  const res = await fetch(`https://poonyameenoi.app.n8n.cloud/webhook-test/get-appointment?id=${id}`);
-  const data = await res.json();
-  const appt = data[0];
-  console.log(appt);
-  console.log(data);
+  async function loadAppointment(id, userId) {
+    const res = await fetch(`https://poonyameenoi.app.n8n.cloud/webhook-test/get-appointment?id=${id}&userId=${userId}`);
+    const data = await res.json();
+    const appt = data[0];
+    console.log(appt);
+    console.log(data);
+    if (!data.allowed) {
+      alert("ลิงก์แก้ไขหมดอายุ หรือไม่สามารถใช้งานได้");
 
-  // ใส่ค่าในฟอร์ม
-  document.getElementById("title").value = data.title;
-  document.getElementById("event_date").value = data.event_date.split("T")[0];
-  document.getElementById("event_time").value = data.event_time.slice(0,5);
-  document.getElementById("remind_before_days").value = data.remind_before_days;
-  document.getElementById("note").value = data.note || "";
-  } 
+      document.getElementById("appointmentForm").style.display = "none";
+
+      return;
+    }
+
+    const appt = data.appointment;
+
+    document.getElementById("title").value = appt.title;
+    document.getElementById("event_date").value = appt.event_date.split("T")[0];
+    document.getElementById("event_time").value = appt.event_time.slice(0, 5);
+    document.getElementById("remind_before_days").value = appt.remind_before_days;
+    document.getElementById("note").value = appt.note || "";
+  }  
   async function submitForm(event) {
     event.preventDefault();
 
-    const profile = await liff.getProfile();
-    const params = new URLSearchParams(window.location.search);
-    const mode = params.get("mode");
-    const id = params.get("id");
+    
+   
     const payload = {
       action: mode === "edit" ? "edit_appointment" : "add_appointment",
       id: id,
